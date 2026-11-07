@@ -1,0 +1,7 @@
+* text=auto
+*.ps1 text eol=crlf
+*.psm1 text eol=crlf
+*.psd1 text eol=crlf
+# Sample diagnostics keep their exact bytes (encoding and line endings are part of the test)
+*.[Rr]eg -text
+demo/sample-diagnostics/** -text

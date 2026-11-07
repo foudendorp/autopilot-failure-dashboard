@@ -1,0 +1,13 @@
+# Local configuration (tenant/client IDs)
+config/settings.json
+# Never commit exports or diagnostics
+*.csv
+autopilot-analysis-*.json
+IntuneDiagnostics-*.zip
+*.cab
+!demo/**
+
+# Editor / assistant local state
+.claude/
+.vscode/
+*.tmp

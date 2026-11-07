@@ -1,0 +1,21 @@
+{
+  "_readme": "Copy to settings.json (done automatically on first start). Never put secrets here: the app uses interactive delegated sign-in without client secrets or certificates.",
+  "_authMode": "custom = your own app registration (tenantId + clientId required). graphCli = Microsoft Graph Command Line Tools (no registration; tenantId optional, clientId ignored). See README.",
+  "authMode": "custom",
+  "tenantId": "",
+  "clientId": "",
+  "port": 8765,
+  "defaultDays": 30,
+  "maxDays": 90,
+  "maxUploadMB": 250,
+  "maxExtractedMB": 2048,
+  "maxArchiveEntries": 10000,
+  "maxProfileLookups": 300,
+  "tryPolicyStatusDetails": false,
+  "policyDetailsForAllEvents": false,
+  "graphMaxRetries": 5,
+  "allowDiagnosticsDownloadPost": true,
+  "requestConfigurationReadScope": true,
+  "useCommunityDiagnosticsScript": false,
+  "openBrowser": true
+}

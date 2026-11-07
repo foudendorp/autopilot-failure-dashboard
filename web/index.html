@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Autopilot Dashboard</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+  <script type="module" src="/assets/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <div class="brand">
+      <img src="/assets/favicon.svg" alt="" width="28" height="28">
+      <div>
+        <h1>Autopilot Dashboard</h1>
+        <p class="sub" id="dataStatus">No data loaded</p>
+      </div>
+    </div>
+    <div class="account" id="account"></div>
+  </header>
+
+  <section class="toolbar" aria-label="Data controls">
+    <div class="range">
+      <label>From <input type="date" id="fromDate"></label>
+      <label>To <input type="date" id="toDate"></label>
+      <button type="button" class="btn primary" id="refreshBtn">Refresh</button>
+      <button type="button" class="btn" id="demoBtn">Demo mode</button>
+    </div>
+    <div class="toggles">
+      <label class="switch"><input type="checkbox" id="anonToggle"> <span>Anonymize</span></label>
+      <button type="button" class="btn" id="exportBtn">Export…</button>
+      <button type="button" class="btn" id="presentBtn" title="Presentation mode (P)">Presentation mode</button>
+    </div>
+  </section>
+
+  <div id="banners" aria-live="polite"></div>
+  <div class="progress hidden" id="progress" role="status" aria-live="polite">
+    <div class="progress-bar"><span id="progressFill"></span></div>
+    <span id="progressText"></span>
+  </div>
+
+  <nav class="tabs" aria-label="Views">
+    <button type="button" data-view="overview" class="tab active">Overview</button>
+    <button type="button" data-view="deployments" class="tab">Deployments</button>
+    <button type="button" data-view="improvements" class="tab">Structural improvements</button>
+    <button type="button" data-view="diagnostics" class="tab">Diagnostics &amp; logs</button>
+    <button type="button" data-view="sources" class="tab">Data sources &amp; rules</button>
+  </nav>
+
+  <section class="filters" id="filters" aria-label="Filters">
+    <label>Flow <select id="fFlow"></select></label>
+    <label>Status <select id="fStatus"></select></label>
+    <label>Profile <select id="fProfile"></select></label>
+    <label>Model <select id="fModel"></select></label>
+    <label class="grow">Search <input type="search" id="fSearch" placeholder="Device, serial, user, error code, app…" autocomplete="off"></label>
+    <button type="button" class="btn subtle" id="fReset">Reset filters</button>
+  </section>
+
+  <main id="main" tabindex="-1"></main>
+
+  <div id="presentation" class="presentation hidden" aria-live="polite"></div>
+
+  <dialog id="detailDialog" class="dialog wide" aria-labelledby="detailTitle">
+    <div class="dialog-head">
+      <h2 id="detailTitle">Deployment</h2>
+      <button type="button" class="btn subtle" data-close aria-label="Close">✕</button>
+    </div>
+    <div id="detailBody" class="dialog-body"></div>
+  </dialog>
+
+  <dialog id="exportDialog" class="dialog" aria-labelledby="exportTitle">
+    <div class="dialog-head">
+      <h2 id="exportTitle">Export analysis</h2>
+      <button type="button" class="btn subtle" data-close aria-label="Close">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="warning-box">
+        <strong>Sensitive data</strong>
+        <p>This export contains Intune tenant data: device names, serial numbers, user names, error details and failure analysis. Once saved it's outside this app's control. Store and share it according to your organisation's data classification, and delete it when you no longer need it.</p>
+        <p id="exportAnonState"></p>
+      </div>
+      <p id="exportCount"></p>
+      <fieldset class="radios">
+        <legend>Format</legend>
+        <label><input type="radio" name="exportFormat" value="csv" checked> CSV (Excel)</label>
+        <label><input type="radio" name="exportFormat" value="json"> JSON (full detail)</label>
+      </fieldset>
+      <label class="check"><input type="checkbox" id="exportAck"> I understand this file contains sensitive tenant data.</label>
+      <div class="dialog-actions">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="button" class="btn primary" id="exportGo" disabled>Export</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="diagDownloadDialog" class="dialog" aria-labelledby="diagDlTitle">
+    <div class="dialog-head">
+      <h2 id="diagDlTitle">Download diagnostics</h2>
+      <button type="button" class="btn subtle" data-close aria-label="Close">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="warning-box">
+        <strong>Sensitive data</strong>
+        <p>Intune diagnostics can include user and device names, network configuration, certificates and installed software. Anonymize does not apply to the downloaded archive itself.</p>
+      </div>
+      <label class="check"><input type="checkbox" id="diagAck"> I understand the archive contains sensitive data.</label>
+      <div class="dialog-actions">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="button" class="btn primary" id="diagDlGo" disabled>Download</button>
+      </div>
+    </div>
+  </dialog>
+
+  <footer class="foot">
+    <span>Read-only · runs locally on 127.0.0.1 · tokens and tenant data are kept in memory only</span>
+    <span class="keys">Keys: <kbd>P</kbd> presentation · <kbd>A</kbd> anonymize · <kbd>1</kbd>–<kbd>5</kbd> views</span>
+  </footer>
+</body>
+</html>

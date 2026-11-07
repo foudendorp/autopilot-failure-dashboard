@@ -1,0 +1,5 @@
+<![LOG[[Win32App] ===Step=== Start to install app 3a9e7c1d-5f2b-4d8e-a6c4-9b0f1e2d3c4a (Contoso Line-of-Business Tool)]LOG]!><time="08:14:02.1180000" date="10-30-2026" component="AppActionProcessor" context="" type="1" thread="14" file="">
+<![LOG[[Win32App] Launch Win32AppInstaller in machine session]LOG]!><time="08:14:02.4300000" date="10-30-2026" component="Win32AppInstaller" context="" type="1" thread="14" file="">
+<![LOG[[Win32App] Admin did NOT set mapping for lpExitCode: 1618 of app: 3a9e7c1d-5f2b-4d8e-a6c4-9b0f1e2d3c4a]LOG]!><time="08:14:37.9020000" date="10-30-2026" component="Win32AppInstaller" context="" type="3" thread="14" file="">
+<![LOG[[Win32App] Installer exit code 1618: Another installation is in progress, please try again later. Error 0x80070652]LOG]!><time="08:14:37.9050000" date="10-30-2026" component="Win32AppInstaller" context="" type="3" thread="14" file="">
+<![LOG[[Win32App] ESP: app 3a9e7c1d-5f2b-4d8e-a6c4-9b0f1e2d3c4a reported InstallationState = Error]LOG]!><time="08:14:38.0010000" date="10-30-2026" component="EspManager" context="" type="3" thread="14" file="">
