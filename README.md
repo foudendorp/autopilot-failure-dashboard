@@ -1,4 +1,6 @@
-# Autopilot Dashboard
+# Autopilot Failure Dashboard
+
+**Repository:** https://github.com/foudendorp/autopilot-failure-dashboard
 
 A local, read-only web app for analysing failed Windows Autopilot deployments in Microsoft Intune.
 It signs in to your tenant with your own (delegated) account, retrieves Autopilot deployment data
@@ -11,9 +13,27 @@ deployment the **phase**, the **evidence**, the **likely or possible cause**, a 
 - Tokens and tenant data are kept in memory only. Nothing is written to disk unless you export.
 - Works without a tenant in **Demo mode** (fictional Contoso data).
 
-> **Build it yourself:** [docs/Studentenopdracht.md](docs/Studentenopdracht.md) (Dutch) has the full
-> prompt to rebuild this dashboard with an AI coding assistant, the pitfalls of the first build and a
-> checklist.
+## Two ways to use this repository
+
+| You want to… | Start here |
+| --- | --- |
+| **Run the dashboard** | [Get the code](#get-the-code), then [Quick start](#quick-start) with `-Demo`. |
+| **Build it yourself** (students, workshops) | [docs/Studentenopdracht.md](docs/Studentenopdracht.md) (Dutch). It has the full English prompt to rebuild this dashboard with an AI coding assistant, the pitfalls found during the first build and a checklist for handing it in. Use this repository as the reference solution. |
+
+---
+
+## Get the code
+
+```powershell
+git clone https://github.com/foudendorp/autopilot-failure-dashboard.git
+cd autopilot-failure-dashboard
+```
+
+If you downloaded the ZIP from GitHub instead, unblock the scripts once so PowerShell will run them:
+
+```powershell
+Get-ChildItem -Recurse | Unblock-File
+```
 
 ---
 
@@ -25,6 +45,7 @@ deployment the **phase**, the **evidence**, the **likely or possible cause**, a 
 | PowerShell 7.6 (7.4+ works) | `winget install Microsoft.PowerShell` |
 | [Pode](https://github.com/Badgerati/Pode) 2.10+ | `Install-PSResource -Name Pode -Scope CurrentUser`, or start with `-InstallDependencies`. Tested with 2.14.2. |
 | Pester 5.5+ (tests only) | `Install-PSResource -Name Pester -Scope CurrentUser`. Windows ships Pester 3.4, which is too old. |
+| Node.js 18+ (tests only) | Runs the front-end filter tests with `node --test`. Without Node those tests are skipped. |
 | A modern browser | Edge or Chrome. No CDN or internet resources are loaded by the UI. |
 
 ### Why Pode
@@ -126,7 +147,7 @@ account.
 
 | Permission | Used for |
 | --- | --- |
-| `DeviceManagementManagedDevices.Read.All` | `autopilotEvents`, `policyStatusDetails`, listing `logCollectionRequests` |
+| `DeviceManagementManagedDevices.Read.All` | `autopilotEvents`, listing `logCollectionRequests`, and `policyStatusDetails` when opted in |
 | `DeviceManagementServiceConfig.Read.All` | `windowsAutopilotDeviceIdentities` and their deployment / intended deployment profiles |
 | `DeviceManagementConfiguration.Read.All` *(optional)* | Least-privileged permission documented for `createDownloadUrl` (diagnostics download), and listing device preparation policies. Turn off with `"requestConfigurationReadScope": false`. |
 | `openid`, `profile`, `offline_access` | Sign-in, showing account and tenant, and in-memory token refresh |
@@ -319,7 +340,11 @@ separately and are excluded from the success rate and from failure charts.
 
 ```powershell
 Invoke-Pester ./tests -Output Detailed
+node --test tests/js/filters.test.mjs   # also run from Pipeline.Tests.ps1 when Node is installed
 ```
+
+Current result: **168 Pester tests pass, 0 fail** (including the Node filter tests), on PowerShell 7.6
+with Pode 2.14.2 and Pester 5.
 
 | File | Covers |
 | --- | --- |
@@ -329,6 +354,14 @@ Invoke-Pester ./tests -Output Detailed
 | `LogParser.Tests.ps1` | .reg parsing, ESP states, serial/EntDMID matching, sample zip, nested cab-in-zip, zip-slip, zip bomb, entry limit, fake archives, temp cleanup |
 | `Anonymize.Tests.ps1` | Masking in fields and free text, stable pseudonyms, exports, CSV injection |
 | `SafeRendering.Tests.ps1` | No HTML sinks or CDN in the front end, plus a live server test: 127.0.0.1-only binding, CSP, Host/Origin/CSRF checks, single-use exports, asset whitelist, uploads |
+| `Auth.Tests.ps1` | PKCE, state (single use, expiry), tenant mismatch, consent errors, token exchange against a mocked endpoint, both sign-in modes |
+| `Pipeline.Tests.ps1` | Regression for a deployment lost by a server-side date filter, a tenant with exactly one deployment, `deploymentState` case variants, pipeline diagnostics without tokens or personal data |
+| `js/filters.test.mjs` | Front-end filter logic (`web/assets/filters.js`) with `node --test` |
+
+**Tested in a real tenant:** sign-in with `graphCli`, refresh, a real failed deployment shown
+with its phase and evidence, and analysis of a real Intune Collect diagnostics zip. **Not yet tested
+in a real tenant:** the `createDownloadUrl` download path, pre-provisioned and self-deploying flows,
+hybrid join, and large tenants (throttling over many pages).
 
 ---
 
@@ -359,8 +392,9 @@ Invoke-Pester ./tests -Output Detailed
 - Device preparation (Autopilot v2) deployment data isn't retrieved (export API requires POST).
 - Diagnostics download through Graph may be refused even with the right roles, per Microsoft's
   documentation. Manual upload is the supported fallback.
-- `policyStatusDetails` is requested per deployment (N+1 calls). Large tenants with many failures
-  take longer and may be throttled. Retries handle this, but a refresh can take minutes.
+- Apps and policies per deployment aren't available from Graph (`policyStatusDetails` was removed).
+  Failing apps come from uploaded diagnostics. `autopilotEvents` is read in full without a server-side
+  filter, so very large tenants take longer to refresh.
 - `autopilotEvents` doesn't carry a device model. It is joined from Autopilot device identities by
   serial number.
 - Event log messages are rendered by the local machine's event providers. On a workstation without
@@ -424,9 +458,27 @@ server.psd1                    Pode server limits
 config/settings.example.json   configuration template (settings.json is git-ignored)
 src/AutopilotDashboard.psm1    module loader
 src/Private/*.ps1              logging, config, Graph client, auth, data, analysis, logs, diagnostics,
-                               anonymization, export, demo data, app state
+                               anonymization, export, demo data, app state, pipeline diagnostics
 src/Server.ps1                 Pode routes and security middleware
 web/                           index.html + assets (JS, CSS, SVG), no external resources
+web/assets/filters.js          pure front-end filter logic (tested with node --test)
 demo/sample-diagnostics/       fictional diagnostics for demo and tests
-tests/                         Pester 5 tests
+tests/                         Pester 5 tests, tests/js/ for the Node tests
+docs/Studentenopdracht.md      student brief: prompt, pitfalls and checklist (Dutch)
+.gitattributes                 keeps the sample diagnostics byte-exact (encoding is part of the tests)
 ```
+
+---
+
+## Contributing and data safety
+
+Issues and pull requests are welcome. Before you open one:
+
+- Use a **test tenant** only. Never include tokens, tenant IDs, user names, device names, serial
+  numbers or real logs in an issue, a commit or a test.
+- Never commit real diagnostics. Add sanitized fixtures under `demo/sample-diagnostics/` or build
+  them inside the test. `.gitignore` already blocks `config/settings.json`, exports, `.cab` files and
+  `IntuneDiagnostics-*.zip`.
+- Run `Invoke-Pester ./tests` and make sure every test passes.
+- Keep the read-only policy: no new Graph methods besides `GET`, and new rules need a
+  `learn.microsoft.com` source and a `verification` note.
