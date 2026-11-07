@@ -482,3 +482,10 @@ Issues and pull requests are welcome. Before you open one:
 - Run `Invoke-Pester ./tests` and make sure every test passes.
 - Keep the read-only policy: no new Graph methods besides `GET`, and new rules need a
   `learn.microsoft.com` source and a `verification` note.
+
+---
+
+## License
+
+[MIT](LICENSE). This is a community tool, not a Microsoft product. Diagnoses are suggestions: always
+check the evidence yourself.
