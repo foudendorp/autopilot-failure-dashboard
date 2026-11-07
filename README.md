@@ -18,7 +18,7 @@ deployment the **phase**, the **evidence**, the **likely or possible cause**, a 
 | You want to… | Start here |
 | --- | --- |
 | **Run the dashboard** | [Get the code](#get-the-code), then [Quick start](#quick-start) with `-Demo`. |
-| **Build it yourself** (students, workshops) | [docs/Studentenopdracht.md](docs/Studentenopdracht.md) (Dutch). It has the full English prompt to rebuild this dashboard with an AI coding assistant, the pitfalls found during the first build and a checklist for handing it in. Use this repository as the reference solution. |
+| **Build it yourself** (students, workshops) | [docs/Student-brief.md](docs/Student-brief.md). It has the full prompt to rebuild this dashboard with an AI coding assistant, the pitfalls found during the first build and a checklist for handing it in. Use this repository as the reference solution. |
 
 ---
 
@@ -464,7 +464,7 @@ web/                           index.html + assets (JS, CSS, SVG), no external r
 web/assets/filters.js          pure front-end filter logic (tested with node --test)
 demo/sample-diagnostics/       fictional diagnostics for demo and tests
 tests/                         Pester 5 tests, tests/js/ for the Node tests
-docs/Studentenopdracht.md      student brief: prompt, pitfalls and checklist (Dutch)
+docs/Student-brief.md          student brief: prompt, pitfalls and checklist
 .gitattributes                 keeps the sample diagnostics byte-exact (encoding is part of the tests)
 ```
 

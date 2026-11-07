@@ -1,38 +1,40 @@
-# Bouw je eigen Autopilot Failure Dashboard
+# Build your own Autopilot Failure Dashboard
 
 Nov 6, 2026 · @Frans
 
-Met deze opdracht bouw je met een AI-codeerassistent een lokaal, read-only dashboard dat mislukte Windows Autopilot-deployments in Intune analyseert. Dit is een verdiepingsopdracht voor na de workshop: reken op meerdere uren.
+In this assignment you use an AI coding assistant to build a local, read-only dashboard that analyses failed Windows Autopilot deployments in Intune. It is an advanced assignment for after the workshop: expect it to take several hours.
 
-## Wat je nodig hebt
+This repository is the reference solution. Try to build it yourself first, then compare.
 
-- Een Windows-beheerwerkplek met PowerShell 7.4 of hoger (7.6 aanbevolen)
-- Node.js, voor de JavaScript-tests met `node --test`
-- Een AI-codeerassistent, die je organisatie heeft goedgekeurd
-- Een Intune-testtenant en een testaccount
-- Minstens één mislukte testdeployment, om de app met echte data te testen
+## What you need
 
-Gebruik geen productietenant. De app werkt ook zonder tenant in Demo mode, dus daar begin je mee.
+- A Windows admin workstation with PowerShell 7.4 or later (7.6 recommended)
+- Node.js, for the JavaScript tests with `node --test`
+- An AI coding assistant approved by your organization
+- An Intune test tenant and a test account
+- At least one failed test deployment, to test the app with real data
 
-## Zo pak je het aan
+Do not use a production tenant. The app also works without a tenant in Demo mode, so start there.
 
-1. Geef de volledige prompt uit deze handleiding aan je AI-codeerassistent. Pas alleen `authMode` aan als je een eigen app-registratie gebruikt.
-2. Laat de assistent in kleine stappen bouwen en test eerst met `./Start-AutopilotDashboard.ps1 -Demo`.
-3. Controleer na elke stap welke tests zijn gedraaid en wat ze aantonen.
-4. Test daarna zelf met je testtenant en een mislukte deployment.
-5. Loop de controlelijst na.
+## How to approach it
 
-## Regels voor veilig werken
+1. Give the full prompt from this guide to your AI coding assistant. Only change `authMode` if you use your own app registration.
+2. Let the assistant build in small steps, and test first with `./Start-AutopilotDashboard.ps1 -Demo`.
+3. After each step, check which tests ran and what they prove.
+4. Then test it yourself with your test tenant and a failed deployment.
+5. Go through the checklist.
 
-- Gebruik alleen een testtenant, een testaccount en leesrechten.
-- Plak geen tokens, tenant-ID's, gebruikersnamen, serienummers of echte logs in je AI-assistent.
-- Zet nooit echte diagnostics in een repository. Gebruik opgeschoonde testbestanden.
-- Test met echte tenantdata zelf en deel alleen gemaskeerde uitkomsten met de assistent.
-- Controleer zelf elke diagnose. Het dashboard stelt een mogelijke oorzaak voor, het bewijs beslist.
+## Rules for working safely
 
-## De prompt
+- Use only a test tenant, a test account and read permissions.
+- Do not paste tokens, tenant IDs, user names, serial numbers or real logs into your AI assistant.
+- Never put real diagnostics in a repository. Use sanitized test files.
+- Test with real tenant data yourself and share only masked results with the assistant.
+- Check every diagnosis yourself. The dashboard suggests a possible cause; the evidence decides.
 
-Kopieer het hele blok. De prompt is in het Engels, net als de app.
+## The prompt
+
+Copy the whole block.
 
 ```markdown
 # Build: Local Autopilot Failure Dashboard (Microsoft Intune)
@@ -133,40 +135,40 @@ Source code, Start-AutopilotDashboard.ps1, config/settings.example.json, rules.j
 At the end, state exactly what you tested, which tests ran and passed, and what still needs testing in a real tenant.
 ```
 
-## Valkuilen uit de eerste bouw
+## Pitfalls from the first build
 
-De eerste versie werkte in Demo mode, maar deze problemen kwamen pas aan het licht met een echte tenant en echte logs. De prompt eist voor elk ervan een oplossing of test.
+The first version worked in Demo mode, but these problems only surfaced with a real tenant and real logs. The prompt requires a fix or a test for each of them.
 
-| Valkuil | Wat er misging | Wat de prompt nu eist |
+| Pitfall | What went wrong | What the prompt now requires |
 | --- | --- | --- |
-| Serverfilter op datum | `$filter=eventDateTime` liet een mislukte deployment weg die de portal wel toonde | Alle pagina's ophalen en lokaal filteren op elke bekende datum |
-| Eén rij in de tenant | PowerShell maakte van een lijst met één item het item zelf, waardoor de tabel leeg bleef | `@(if ...)` gebruiken en testen met 0, 1 en veel rijen |
-| `@()` om een functie | De lijst werd in een extra lijst verpakt | Expliciete test op geneste arrays |
-| `policyStatusDetails` | Pad en `$expand` gaven HTTP 400, ondanks de documentatie | Standaard uit, en app-bewijs ophalen via de ESP en de app |
-| Event ophalen op ID | `GET /autopilotEvents/{id}` gaf HTTP 400 | Alleen de lijst-call gebruiken en lokaal selecteren |
-| Aanvullende details | Een mislukte detailcall kan een hele Refresh raken | Deployment altijd tonen, details als "Not available" |
-| Sign-in zonder app-registratie | Redirect naar 127.0.0.1 werkt niet met de Graph CLI-app | Modus `graphCli` met localhost-callback, alleen voor die route |
-| Diagnostics via Graph | Microsoft zegt dat downloaden via Graph niet kan | Capability-test en handmatige upload |
-| `.cab` uitpakken | `expand.exe` hernoemt bestanden in cabs met één bestand | `tar.exe` gebruiken |
-| Registry-dump | Een echte dump is UTF-8 zonder BOM, ingesprongen en gebruikt `DWORD:` | Echte formaten parsen en testen met opgeschoonde bestanden |
-| Lange paden | `Get-WinEvent` kon een `.evtx` op 281 tekens niet openen | Eerst naar een kort tijdelijk pad kopiëren |
-| Verkeerde bronnen | Defender-log en CSP-cache gaven valse bevindingen | Alleen relevante logs en registersleutels |
-| Anonymize traag | 5 seconden per toggle in de workshop | Reactie binnen 1 seconde |
+| Server-side date filter | `$filter=eventDateTime` dropped a failed deployment that the portal did show | Fetch all pages and filter locally on every known date |
+| One row in the tenant | PowerShell turned a one-item list into the item itself, so the table stayed empty | Use `@(if ...)` and test with 0, 1 and many rows |
+| `@()` around a function | The list was wrapped in an extra list | An explicit test for nested arrays |
+| `policyStatusDetails` | The path and `$expand` returned HTTP 400, despite the documentation | Off by default; get app evidence through the ESP and the app |
+| Fetching an event by ID | `GET /autopilotEvents/{id}` returned HTTP 400 | Use only the list call and select locally |
+| Additional details | One failed detail call could break a whole Refresh | Always show the deployment, with details as "Not available" |
+| Sign-in without an app registration | A redirect to 127.0.0.1 does not work with the Graph CLI app | `graphCli` mode with a localhost callback, for that route only |
+| Diagnostics through Graph | Microsoft says downloading through Graph is not possible | A capability test and manual upload |
+| Extracting `.cab` files | `expand.exe` renames files in single-file cabs | Use `tar.exe` |
+| Registry dump | A real dump is UTF-8 without BOM, indented, and uses `DWORD:` | Parse the real formats and test with sanitized files |
+| Long paths | `Get-WinEvent` could not open an `.evtx` at 281 characters | Copy it to a short temp path first |
+| Wrong sources | The Defender log and the CSP cache produced false findings | Only relevant logs and registry keys |
+| Slow anonymize | 5 seconds per toggle during the workshop | Respond within 1 second |
 
-## Controlelijst
+## Checklist
 
-Toon elk punt met een testuitvoer, schermafbeelding of korte demo.
+Show each item with test output, a screenshot or a short demo.
 
-- [ ] `./Start-AutopilotDashboard.ps1 -Demo` start zonder tenant en toont grafieken, tabel en detailweergave
-- [ ] Alle Pester-tests en `node --test` slagen, en het aantal staat in de README
-- [ ] Een POST, PATCH of DELETE naar Graph wordt geblokkeerd vóór verzending (test)
-- [ ] Een tenant met precies één deployment toont die ene rij (test)
-- [ ] Een mislukte detailcall laat de deployment zichtbaar en de Refresh werkend (test)
-- [ ] Een echte mislukte testdeployment verschijnt in het dashboard
-- [ ] De detectieregel van de gevolgde app staat als bewijs bij de deployment
-- [ ] Een echte Intune Collect-zip uit je testtenant wordt lokaal geanalyseerd: registry, ESP-status en Autopilot-events komen door
-- [ ] Een zip met `../` in een pad wordt geweigerd (test)
-- [ ] Anonymize maskeert namen en serienummers ook in de export
-- [ ] Pipeline diagnostics laat zien waar een rij blijft, zonder tokens of persoonsgegevens
-- [ ] Presentatiemodus werkt volledig met het toetsenbord
-- [ ] De README noemt wat getest is en wat nog in een echte tenant getest moet worden
+- [ ] `./Start-AutopilotDashboard.ps1 -Demo` starts without a tenant and shows charts, table and detail view
+- [ ] All Pester tests and `node --test` pass, and the count is in the README
+- [ ] A POST, PATCH or DELETE to Graph is blocked before it is sent (test)
+- [ ] A tenant with exactly one deployment shows that one row (test)
+- [ ] A failed detail call keeps the deployment visible and the Refresh working (test)
+- [ ] A real failed test deployment appears in the dashboard
+- [ ] The detection rule of the failing app is shown as evidence for the deployment
+- [ ] A real Intune Collect zip from your test tenant is analysed locally: registry, ESP status and Autopilot events come through
+- [ ] A zip with `../` in a path is rejected (test)
+- [ ] Anonymize also masks names and serial numbers in the export
+- [ ] Pipeline diagnostics shows where a row ends up, without tokens or personal data
+- [ ] Presentation mode works fully from the keyboard
+- [ ] The README states what was tested and what still needs testing in a real tenant
