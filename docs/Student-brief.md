@@ -18,6 +18,8 @@ Do not use a production tenant. The app also works without a tenant in Demo mode
 
 ## How to approach it
 
+Optional warm-up: run [`scripts/Get-AutopilotFailureDetails.ps1`](../scripts/Get-AutopilotFailureDetails.ps1) against your test tenant. It follows one failed deployment through Graph by hand (deployment, registration, device, ESP, app and detection rule), which is exactly what your dashboard will automate.
+
 1. Give the full prompt from this guide to your AI coding assistant. Only change `authMode` if you use your own app registration.
 2. Let the assistant build in small steps, and test first with `./Start-AutopilotDashboard.ps1 -Demo`.
 3. After each step, check which tests ran and what they prove.

@@ -18,6 +18,7 @@ deployment the **phase**, the **evidence**, the **likely or possible cause**, a 
 | You want to… | Start here |
 | --- | --- |
 | **Run the dashboard** | [Get the code](#get-the-code), then [Quick start](#quick-start) with `-Demo`. |
+| **Walk through one failure in Graph** (demo, learning) | [Graph walkthrough script](#graph-walkthrough-script) |
 | **Build it yourself** (students, workshops) | [docs/Student-brief.md](docs/Student-brief.md). It has the full prompt to rebuild this dashboard with an AI coding assistant, the pitfalls found during the first build and a checklist for handing it in. Use this repository as the reference solution. |
 
 ---
@@ -81,6 +82,32 @@ The browser opens at `http://127.0.0.1:8765/`. Stop the server with **Ctrl+C**.
 | `-InstallDependencies` | Install Pode for the current user if it is missing. |
 
 On first start, `config\settings.json` is created from `config\settings.example.json`.
+
+---
+
+## Graph walkthrough script
+
+[`scripts/Get-AutopilotFailureDetails.ps1`](scripts/Get-AutopilotFailureDetails.ps1) is a standalone,
+read-only script that follows the latest failed deployment through Microsoft Graph, step by step: the
+failed deployments, the latest failure and its serial number, the Autopilot registration, the Intune
+device, the Enrollment Status Page, the tracked app with its detection rule and, optionally, recent
+Intune audit events. It shows by hand what the dashboard automates, so it works well for a live demo
+or before you start the student brief.
+
+```powershell
+Install-Module Microsoft.Graph.Authentication -Scope CurrentUser
+./scripts/Get-AutopilotFailureDetails.ps1
+./scripts/Get-AutopilotFailureDetails.ps1 -EspName "ESP-Demo" -AppIndex 1 -IncludeAuditEvents -AuditDays 14
+```
+
+- Signs in with `Connect-MgGraph` (delegated) and the scopes `DeviceManagementManagedDevices.Read.All`,
+  `DeviceManagementServiceConfig.Read.All` and `DeviceManagementApps.Read.All`.
+- Sends only `GET` requests and checks the host of every `@odata.nextLink`. `tests/Scripts.Tests.ps1`
+  checks this statically.
+- Step 1 uses a server-side `$filter` on `deploymentState`, which is fine for one walkthrough. The
+  dashboard deliberately fetches everything and filters locally (see [Data retrieved](#data-retrieved)).
+- The output contains device names, user names and serial numbers. Mask it before you share
+  screenshots or logs, and use a test tenant.
 
 ---
 
@@ -343,7 +370,7 @@ Invoke-Pester ./tests -Output Detailed
 node --test tests/js/filters.test.mjs   # also run from Pipeline.Tests.ps1 when Node is installed
 ```
 
-Current result: **168 Pester tests pass, 0 fail** (including the Node filter tests), on PowerShell 7.6
+Current result: **171 Pester tests pass, 0 fail** (including the Node filter tests), on PowerShell 7.6
 with Pode 2.14.2 and Pester 5.
 
 | File | Covers |
@@ -356,6 +383,7 @@ with Pode 2.14.2 and Pester 5.
 | `SafeRendering.Tests.ps1` | No HTML sinks or CDN in the front end, plus a live server test: 127.0.0.1-only binding, CSP, Host/Origin/CSRF checks, single-use exports, asset whitelist, uploads |
 | `Auth.Tests.ps1` | PKCE, state (single use, expiry), tenant mismatch, consent errors, token exchange against a mocked endpoint, both sign-in modes |
 | `Pipeline.Tests.ps1` | Regression for a deployment lost by a server-side date filter, a tenant with exactly one deployment, `deploymentState` case variants, pipeline diagnostics without tokens or personal data |
+| `Scripts.Tests.ps1` | Scripts in `scripts/` parse and call Graph with `GET` only |
 | `js/filters.test.mjs` | Front-end filter logic (`web/assets/filters.js`) with `node --test` |
 
 **Tested in a real tenant:** sign-in with `graphCli`, refresh, a real failed deployment shown
@@ -464,6 +492,7 @@ web/                           index.html + assets (JS, CSS, SVG), no external r
 web/assets/filters.js          pure front-end filter logic (tested with node --test)
 demo/sample-diagnostics/       fictional diagnostics for demo and tests
 tests/                         Pester 5 tests, tests/js/ for the Node tests
+scripts/                       standalone read-only Graph walkthrough (Get-AutopilotFailureDetails.ps1)
 docs/Student-brief.md          student brief: prompt, pitfalls and checklist
 .gitattributes                 keeps the sample diagnostics byte-exact (encoding is part of the tests)
 ```
